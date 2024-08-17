@@ -7,11 +7,34 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MicrocreditStatus } from 'src/common/enums/microcredit-states.enum';
 
+interface InterestRateStrategy {
+  calculate(user: User): number;
+}
+
+@Injectable()
+export class StandardInterestRateStrategy implements InterestRateStrategy {
+  calculate(user: User): number {
+    return user.creditScore > 700 ? 5 : 15;
+  }
+}
+
+@Injectable()
+export class PremiumInterestRateStrategy implements InterestRateStrategy {
+  calculate(user: User): number {
+    return user.creditScore > 700 ? 3 : 10;
+  }
+}
+
 @Injectable()
 export class CreditCalculationService {
+  private strategy: InterestRateStrategy;
+
+  constructor(strategy: InterestRateStrategy) {
+    this.strategy = strategy;
+  }
 
   calculateInterestRate(user: User): number {
-    return user.creditScore > 700 ? 5 : 15;
+    return this.strategy.calculate(user);
   }
 }
 
